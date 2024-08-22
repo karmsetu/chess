@@ -24,4 +24,8 @@
 
 -   x: RANK
 -   y: BOARD_FILE
--   [!RANK&FILE](https://www.wikihow.com/images/thumb/b/b4/Annotate-Chess-Step-1-Version-3.jpg/aid1485299-v4-728px-Annotate-Chess-Step-1-Version-3.jpg)
+-   ![RANK&FILE](https://www.wikihow.com/images/thumb/b/b4/Annotate-Chess-Step-1-Version-3.jpg/aid1485299-v4-728px-Annotate-Chess-Step-1-Version-3.jpg)
+
+![findSafeSquare](./img/findSafeSquare.png)
+![findSafeSquareLogic](./img/fSS-logic.png)
+![king-in-check](./img/king-in-check.png)
