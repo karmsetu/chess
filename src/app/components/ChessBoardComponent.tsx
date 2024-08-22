@@ -1,5 +1,6 @@
+import Image from 'next/image';
 import { ChessBoard } from '../chess_logic/board';
-import { Color, FENChar } from '../chess_logic/models';
+import { Color, FENChar, pieceImagePaths } from '../chess_logic/models';
 
 const ChessBoardComponent = () => {
     const chessBoard = new ChessBoard();
@@ -21,7 +22,16 @@ const ChessBoardComponent = () => {
                                             : `bg-slate-100`
                                     }`}
                                     key={y}
-                                ></div>
+                                >
+                                    {square && (
+                                        <Image
+                                            src={pieceImagePaths[square]}
+                                            alt="piece"
+                                            width={40}
+                                            height={40}
+                                        />
+                                    )}
+                                </div>
                             );
                             {
                                 /* square */
