@@ -1,110 +1,98 @@
 'use client';
 
-import Image from 'next/image';
+import React from 'react';
 import { ChessBoard } from '../chess_logic/board';
-import { Color, Coords, FENChar, pieceImagePaths } from '../chess_logic/models';
+import {
+    Color,
+    Coords,
+    FENChar,
+    pieceImagePaths,
+    SafeSquares,
+} from '../chess_logic/models';
+import Image from 'next/image';
 import { SelectedSquare } from '../chess-board/models';
-import Tile from './ui/Tile';
-import { useState } from 'react';
 
-const ChessBoardComponent = () => {
-    const [selectedTile, setSelectedTile] = useState<Coords | null>(null);
-    // const [safeSquares, setSafeSquares] = useState<Coords[] | null>();
-    const chessBoard = new ChessBoard();
-    const chessBoardView: (FENChar | null)[][] = chessBoard.chessBoardView;
-    const playerColor: Color = chessBoard.playerColor;
-    let selectedSquare: SelectedSquare = { piece: null };
-    let pieceSafeSquares: Coords[] = [];
+export default class ChessBoardComponent extends React.Component {
+    private chessBoard = new ChessBoard();
+    public chessBoardView: (FENChar | null)[][] =
+        this.chessBoard.chessBoardView;
+    public get playerColor(): Color {
+        return this.chessBoard.playerColor;
+    }
+    public get safeSquares(): SafeSquares {
+        return this.chessBoard.safeSquares;
+    }
 
-    const selectingPiece = (x: number, y: number) => {
-        const piece: FENChar | null = chessBoardView[x][y];
-        if (!piece) return;
-        selectedSquare = { piece, x, y };
-        pieceSafeSquares = chessBoard.safeSquares.get(`${x},${y}`) || [];
-        setSelectedTile({ x, y });
-    };
+    private isSquareDark(x: number, y: number): boolean {
+        return (x % 2 === 0 && y % 2 === 0) || (x % 2 === 1 && y % 2 === 1);
+    }
 
-    const isSquareSelected = (x: number, y: number): boolean => {
-        if (!selectedSquare.piece) return false;
-        return selectedSquare.x === x && selectedSquare.y === y;
-    };
+    private selectedSquare: SelectedSquare = { piece: null };
+    private pieceSafeSquares: Coords[] = [];
 
-    const isSquareSafeForSelectedPiece = (x: number, y: number): boolean => {
-        return pieceSafeSquares.some(
-            (coords) => coords.x === x && coords.y === y
+    public isSquareSelected(x: number, y: number): boolean {
+        if (!this.selectedSquare.piece) return false;
+        return this.selectedSquare.x === x && this.selectedSquare.y === y;
+    }
+    public isSquareSafeForSelectedPiece(x: number, y: number): boolean {
+        return this.pieceSafeSquares.some(
+            (coords) => coords.x === x && coords.y
         );
-    };
+    }
 
-    return (
-        <section className="flex flex-col-reverse">
-            {chessBoardView.map((row, x) => {
-                return (
-                    <div key={x} className="flex flex-row ">
-                        {row.map((square, y) => {
-                            return (
-                                <Tile
-                                    key={y}
-                                    tileColor={chessBoard.isSquareDark(x, y)}
-                                    coords={{ x, y }}
-                                    selectingPiece={selectingPiece}
-                                    selectedTile={selectedTile}
-                                >
-                                    {square && (
-                                        <Image
-                                            src={pieceImagePaths[square]}
-                                            alt="piece"
-                                            width={40}
-                                            height={40}
-                                            // onClick={() => selectingPiece(x, y)}
-                                        />
-                                    )}
-                                </Tile>
-                            );
-                        })}
-                    </div>
-                );
-            })}
-            <div id="chess-board"></div>
-        </section>
-    );
-};
+    public selectingPiece(x: number, y: number): void {
+        const piece: FENChar | null = this.chessBoardView[x][y];
+        if (!piece) return;
+        this.selectedSquare = { piece, x, y };
+        this.chessBoard.findSafeSqures();
+        this.pieceSafeSquares =
+            this.chessBoard.safeSquares.get(`${x},${y}`) || [];
+        console.log(`in front`);
 
-/*
-
-const Tile = ({
-    chessBoard,
-    x,
-    y,
-    square,
-}: {
-    chessBoard: ChessBoard;
-    x: number;
-    y: number;
-    square: FENChar | null;
-}) => {
-    return (
-        <div
-            // onClick={selectingPiece(x,y)}
-            className={`square 
-                                        ${
-                                            chessBoard.isSquareDark(x, y)
-                                                ? `bg-slate-500`
-                                                : `bg-slate-100`
+        console.log(this.selectedSquare, this.pieceSafeSquares);
+    }
+    render(): React.ReactNode {
+        return (
+            <div className="chess-board border-2 border-red-500 w-fit m-4">
+                {this.chessBoardView.map((row, x) => {
+                    return (
+                        <div key={x} className={`flex flex-row`}>
+                            {row.map((square, y) => {
+                                return (
+                                    <div
+                                        key={y}
+                                        onClick={() =>
+                                            this.selectingPiece(x, y)
+                                        }
+                                        className={`square 
+                                            ${
+                                                this.isSquareDark(x, y)
+                                                    ? `bg-slate-100`
+                                                    : `bg-slate-900`
                                             }
-                                        `}
-            key={y}
-        >
-            {square && (
-                <Image
-                    src={pieceImagePaths[square]}
-                    alt="piece"
-                    width={40}
-                    height={40}
-                />
-            )}
-        </div>
-    );
-};
+                                            ${
+                                                this.isSquareSelected(x, y) ??
+                                                `bg-red-600`
+                                            }
+                                            `}
+                                    >
+                                        {square && (
+                                            <Image
+                                                src={pieceImagePaths[square]}
+                                                width={40}
+                                                height={40}
+                                                alt="piece"
+                                            />
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    }
+}
 
-*/
-export default ChessBoardComponent;
+// export default ChessBoardComponent

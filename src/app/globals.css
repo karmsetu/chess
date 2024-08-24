@@ -38,4 +38,8 @@ body {
         @apply h-10 w-10 bg-white 
         flex items-center justify-center text-slate-800;
     }
+
+    .chess-board {
+        @apply flex justify-center flex-col-reverse;
+    }
 }
