@@ -126,9 +126,12 @@ export default class ChessBoardComponent extends React.Component<BoardState> {
                                                     : `bg-slate-900`
                                             }
                                             ${
-                                                this.isSquareSelected(x, y)
-                                                    ? `bg-red-600`
-                                                    : ``
+                                                square &&
+                                                this.isSquareSafeForSelectedPiece(
+                                                    x,
+                                                    y
+                                                ) &&
+                                                `bg-red-500`
                                             }
                                             `}
                                         >
@@ -142,12 +145,13 @@ export default class ChessBoardComponent extends React.Component<BoardState> {
                                                     alt="piece"
                                                 />
                                             )}
-                                            {this.isSquareSafeForSelectedPiece(
-                                                x,
-                                                y
-                                            ) && (
-                                                <span className="h-2 w-2 bg-white border-2 border-yellow-400 rounded"></span>
-                                            )}
+                                            {!square &&
+                                                this.isSquareSafeForSelectedPiece(
+                                                    x,
+                                                    y
+                                                ) && (
+                                                    <span className="h-2 w-2 bg-white border-2 border-yellow-400 rounded"></span>
+                                                )}
                                         </div>
                                     );
                                 })}
