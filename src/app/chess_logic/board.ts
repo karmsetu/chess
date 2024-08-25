@@ -1,4 +1,11 @@
-import { Color, Coords, FENChar, SafeSquares } from './models';
+import {
+    CheckState,
+    Color,
+    Coords,
+    FENChar,
+    LastMove,
+    SafeSquares,
+} from './models';
 import { Bishop } from './pieces/Bishop';
 import { King } from './pieces/King';
 import { Knight } from './pieces/Knight';
@@ -12,6 +19,9 @@ export class ChessBoard {
     private _playerColor = Color.White;
     private readonly chessBoardSize: number = 8;
     private _safeSquares: SafeSquares;
+    private _lastMove: LastMove | undefined;
+    private _checkState: CheckState = { isInCheck: false };
+
     constructor() {
         this.chessBoard = [
             [
@@ -80,6 +90,14 @@ export class ChessBoard {
         return this._safeSquares;
     }
 
+    public get lastMove(): LastMove | undefined {
+        return this._lastMove;
+    }
+
+    public get checkState(): CheckState {
+        return this._checkState;
+    }
+
     public isSquareDark(x: number, y: number): boolean {
         return (x % 2 === 0 && y % 2 === 0) || (x % 2 === 1 && y % 2 === 1);
     }
@@ -93,7 +111,10 @@ export class ChessBoard {
         );
     }
 
-    public isInCheck(playerColor: Color): boolean {
+    public isInCheck(
+        playerColor: Color,
+        checkingCurrentPosition: boolean
+    ): boolean {
         for (let x = 0; x < this.chessBoardSize; x++) {
             for (let y = 0; y < this.chessBoardSize; y++) {
                 //looping throght all 64 squares
@@ -123,6 +144,13 @@ export class ChessBoard {
                             attackedPiece instanceof King &&
                             attackedPiece.color === playerColor // returns true if king of currentPlayerColor is being attacked
                         ) {
+                            if (checkingCurrentPosition) {
+                                this._checkState = {
+                                    isInCheck: true,
+                                    x: newX,
+                                    y: newY,
+                                };
+                            }
                             return true;
                         }
                     } else {
@@ -138,6 +166,13 @@ export class ChessBoard {
                                 attackedPiece instanceof King &&
                                 attackedPiece.color === playerColor
                             ) {
+                                if (checkingCurrentPosition) {
+                                    this._checkState = {
+                                        isInCheck: true,
+                                        x: newX,
+                                        y: newY,
+                                    };
+                                }
                                 return true;
                             }
 
@@ -154,6 +189,7 @@ export class ChessBoard {
                 }
             }
         }
+        if (checkingCurrentPosition) this._checkState = { isInCheck: false };
         return false;
     }
 
@@ -176,7 +212,7 @@ export class ChessBoard {
         this.chessBoard[prevX][prevY] = null;
         this.chessBoard[newX][newY] = piece;
 
-        const isPositionSafe: boolean = !this.isInCheck(piece.color);
+        const isPositionSafe: boolean = !this.isInCheck(piece.color, false);
 
         this.chessBoard[prevX][prevY] = piece;
         this.chessBoard[newX][newY] = newPiece;
@@ -307,8 +343,16 @@ export class ChessBoard {
         this.chessBoard[prevX][prevY] = null;
         this.chessBoard[newX][newY] = piece;
 
+        this._lastMove = {
+            prevX,
+            prevY,
+            currX: newX,
+            currY: newY,
+            piece,
+        };
         this._playerColor =
             this._playerColor === Color.White ? Color.Black : Color.White;
+        this.isInCheck(this._playerColor, true);
         this._safeSquares = this.findSafeSqures();
         // console.log(this.chessBoard, this._playerColor);
     }

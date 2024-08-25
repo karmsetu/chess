@@ -3,9 +3,11 @@
 import React from 'react';
 import { ChessBoard } from '../chess_logic/board';
 import {
+    CheckState,
     Color,
     Coords,
     FENChar,
+    LastMove,
     pieceImagePaths,
     SafeSquares,
 } from '../chess_logic/models';
@@ -16,16 +18,22 @@ type BoardState = {
     activeTile: SelectedSquare;
     legalMove: Coords[];
     chessBoardArray: (FENChar | null)[][];
+    lastMove: LastMove | undefined;
+    checkState: CheckState;
 };
 
 export default class ChessBoardComponent extends React.Component<BoardState> {
     private chessBoard = new ChessBoard();
     public chessBoardView: (FENChar | null)[][] =
         this.chessBoard.chessBoardView;
+    private lastMove: LastMove | undefined = this.chessBoard.lastMove;
+    private checkState: CheckState = this.chessBoard.checkState;
     state: BoardState = {
         activeTile: { piece: null },
         legalMove: [],
         chessBoardArray: this.chessBoardView,
+        lastMove: this.lastMove,
+        checkState: this.checkState,
     };
 
     public get playerColor(): Color {
@@ -53,6 +61,20 @@ export default class ChessBoardComponent extends React.Component<BoardState> {
     public isSquareSafeForSelectedPiece(x: number, y: number): boolean {
         return this.state.legalMove.some(
             (coords) => coords.x === x && coords.y === y
+        );
+    }
+
+    public isSquareLastMove(x: number, y: number): boolean {
+        if (!this.state.lastMove) return false;
+        const { prevX, prevY, currX, currY } = this.state.lastMove;
+        return (x === prevX && prevY === y) || (currX === x && currY === y);
+    }
+
+    public isSquareChecked(x: number, y: number): boolean {
+        return (
+            this.state.checkState.isInCheck &&
+            this.state.checkState.x === x &&
+            this.state.checkState.y === y
         );
     }
 
@@ -87,12 +109,16 @@ export default class ChessBoardComponent extends React.Component<BoardState> {
         const { x: prevX, y: prevY } = this.state.activeTile;
         this.chessBoard.move(prevX, prevY, newX, newY);
         this.chessBoardView = this.chessBoard.chessBoardView;
-        console.log(this.chessBoardView, this.state.activeTile);
+        // this.state.checkState = this.chessBoard.checkState
+        // this.setState({ checkState: this.chessBoard.checkState });
+        // console.log(this.chessBoardView, this.state.activeTile);
 
         this.setState((_) => ({
             chessBoardArray: this.chessBoard.chessBoardView,
             activeTile: { piece: null },
             legalMove: [],
+            checkState: this.chessBoard.checkState,
+            lastMove: this.chessBoard.lastMove,
         }));
         console.log(this.state.chessBoardArray, this.state.activeTile);
     }
@@ -133,6 +159,15 @@ export default class ChessBoardComponent extends React.Component<BoardState> {
                                                 ) &&
                                                 `bg-red-500`
                                             }
+                                            ${
+                                                this.isSquareChecked(x, y) &&
+                                                `bg-blue-500`
+                                            }
+                                            ${
+                                                this.isSquareLastMove(x, y) &&
+                                                `bg-green-400`
+                                            }
+                                            $
                                             `}
                                         >
                                             {square && (
