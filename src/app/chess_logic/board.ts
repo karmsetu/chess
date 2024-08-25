@@ -260,4 +260,56 @@ export class ChessBoard {
 
         return safeSqures;
     }
+
+    public move(
+        prevX: number,
+        prevY: number,
+        newX: number,
+        newY: number
+    ): void {
+        console.log(`called`);
+        console.log(this.chessBoard);
+
+        if (
+            !this.areCoordsValid(prevX, prevY) ||
+            !this.areCoordsValid(newX, newY)
+        )
+            return;
+        console.log(`what`);
+
+        const piece: Piece | null = this.chessBoard[prevX][prevY];
+        if (!piece || piece.color !== this.playerColor) return;
+        const pieceSafeSquares = this.safeSquares.get(`${prevX},${prevY}`);
+        console.log({ piece, pieceSafeSquares });
+
+        if (
+            !pieceSafeSquares ||
+            !pieceSafeSquares.find(
+                (coords) => coords.x === newX && coords.y === newY
+            )
+        )
+            throw new Error(`Square is not safe`);
+
+        // removing _hasMoved property
+        console.log(`moving`);
+
+        if (
+            (piece instanceof Pawn ||
+                piece instanceof King ||
+                piece instanceof Rook) &&
+            !piece.hasMoved
+        )
+            piece.hasMoved = true;
+
+        // updating the board
+        // console.log({ prevX, prevY, newX, newY });
+
+        this.chessBoard[prevX][prevY] = null;
+        this.chessBoard[newX][newY] = piece;
+
+        this._playerColor =
+            this._playerColor === Color.White ? Color.Black : Color.White;
+        this._safeSquares = this.findSafeSqures();
+        // console.log(this.chessBoard, this._playerColor);
+    }
 }

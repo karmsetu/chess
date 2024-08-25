@@ -15,17 +15,19 @@ import { SelectedSquare } from '../chess-board/models';
 type BoardState = {
     activeTile: SelectedSquare;
     legalMove: Coords[];
+    chessBoardArray: (FENChar | null)[][];
 };
 
 export default class ChessBoardComponent extends React.Component<BoardState> {
-    state: BoardState = {
-        activeTile: { piece: null },
-        legalMove: [],
-    };
-
     private chessBoard = new ChessBoard();
     public chessBoardView: (FENChar | null)[][] =
         this.chessBoard.chessBoardView;
+    state: BoardState = {
+        activeTile: { piece: null },
+        legalMove: [],
+        chessBoardArray: this.chessBoardView,
+    };
+
     public get playerColor(): Color {
         return this.chessBoard.playerColor;
     }
@@ -55,7 +57,7 @@ export default class ChessBoardComponent extends React.Component<BoardState> {
     }
 
     public selectingPiece(x: number, y: number): void {
-        const piece: FENChar | null = this.chessBoardView[x][y];
+        const piece: FENChar | null = this.state.chessBoardArray[x][y];
         if (!piece) return;
         if (this.isWrongPieceSelected(piece)) return;
         this.selectedSquare = { piece, x, y };
@@ -66,7 +68,7 @@ export default class ChessBoardComponent extends React.Component<BoardState> {
         this.setState({ legalMove: this.pieceSafeSquares });
         // console.log(`in front`);
 
-        // console.log(this.pieceSafeSquares);
+        console.log(this.state.activeTile, this.state.legalMove);
     }
 
     private isWrongPieceSelected(piece: FENChar): boolean {
@@ -77,20 +79,47 @@ export default class ChessBoardComponent extends React.Component<BoardState> {
         );
     }
 
+    // implementing move
+    private placingPiece(newX: number, newY: number): void {
+        if (!this.state.activeTile.piece) return;
+        if (!this.isSquareSafeForSelectedPiece(newX, newY)) return;
+
+        const { x: prevX, y: prevY } = this.state.activeTile;
+        this.chessBoard.move(prevX, prevY, newX, newY);
+        this.chessBoardView = this.chessBoard.chessBoardView;
+        console.log(this.chessBoardView, this.state.activeTile);
+
+        this.setState((_) => ({
+            chessBoardArray: this.chessBoard.chessBoardView,
+            activeTile: { piece: null },
+            legalMove: [],
+        }));
+        console.log(this.state.chessBoardArray, this.state.activeTile);
+    }
+
+    public move(x: number, y: number) {
+        this.selectingPiece(x, y);
+        this.placingPiece(x, y);
+        // console.log(this.state.chessBoardArray);
+    }
+
+    public getStats() {
+        console.log(this.state);
+    }
+
     render(): React.ReactNode {
         return (
-            <div className="chess-board border-2 border-red-500 w-fit m-4">
-                {this.chessBoardView.map((row, x) => {
-                    return (
-                        <div key={x} className={`flex flex-row`}>
-                            {row.map((square, y) => {
-                                return (
-                                    <div
-                                        key={y}
-                                        onClick={() =>
-                                            this.selectingPiece(x, y)
-                                        }
-                                        className={`square 
+            <>
+                <div className="chess-board border-2 border-red-500 w-fit m-4">
+                    {this.chessBoardView.map((row, x) => {
+                        return (
+                            <div key={x} className={`flex flex-row`}>
+                                {row.map((square, y) => {
+                                    return (
+                                        <div
+                                            key={y}
+                                            onClick={() => this.move(x, y)}
+                                            className={`square 
                                             ${
                                                 this.isSquareDark(x, y)
                                                     ? `bg-slate-100`
@@ -102,28 +131,32 @@ export default class ChessBoardComponent extends React.Component<BoardState> {
                                                     : ``
                                             }
                                             `}
-                                    >
-                                        {square && (
-                                            <Image
-                                                src={pieceImagePaths[square]}
-                                                width={40}
-                                                height={40}
-                                                alt="piece"
-                                            />
-                                        )}
-                                        {this.isSquareSafeForSelectedPiece(
-                                            x,
-                                            y
-                                        ) && (
-                                            <span className="h-2 w-2 bg-white border-2 border-yellow-400 rounded"></span>
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    );
-                })}
-            </div>
+                                        >
+                                            {square && (
+                                                <Image
+                                                    src={
+                                                        pieceImagePaths[square]
+                                                    }
+                                                    width={40}
+                                                    height={40}
+                                                    alt="piece"
+                                                />
+                                            )}
+                                            {this.isSquareSafeForSelectedPiece(
+                                                x,
+                                                y
+                                            ) && (
+                                                <span className="h-2 w-2 bg-white border-2 border-yellow-400 rounded"></span>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        );
+                    })}
+                </div>
+                <button onClick={() => this.getStats()}>stat</button>
+            </>
         );
     }
 }
