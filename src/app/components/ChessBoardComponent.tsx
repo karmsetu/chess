@@ -57,16 +57,26 @@ export default class ChessBoardComponent extends React.Component<BoardState> {
     public selectingPiece(x: number, y: number): void {
         const piece: FENChar | null = this.chessBoardView[x][y];
         if (!piece) return;
+        if (this.isWrongPieceSelected(piece)) return;
         this.selectedSquare = { piece, x, y };
         this.setState((state) => ({ activeTile: this.selectedSquare }));
         this.chessBoard.findSafeSqures();
         this.pieceSafeSquares =
             this.chessBoard.safeSquares.get(`${x},${y}`) || [];
         this.setState({ legalMove: this.pieceSafeSquares });
-        console.log(`in front`);
+        // console.log(`in front`);
 
-        console.log(this.pieceSafeSquares);
+        // console.log(this.pieceSafeSquares);
     }
+
+    private isWrongPieceSelected(piece: FENChar): boolean {
+        const isWhitePieceSelected: boolean = piece === piece.toUpperCase();
+        return (
+            (isWhitePieceSelected && this.playerColor === Color.Black) ||
+            (!isWhitePieceSelected && this.playerColor === Color.White)
+        );
+    }
+
     render(): React.ReactNode {
         return (
             <div className="chess-board border-2 border-red-500 w-fit m-4">

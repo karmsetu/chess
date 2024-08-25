@@ -256,7 +256,7 @@ export class ChessBoard {
             }
         }
 
-        console.log(safeSqures);
+        // console.log(safeSqures);
 
         return safeSqures;
     }
