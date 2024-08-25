@@ -12,7 +12,17 @@ import {
 import Image from 'next/image';
 import { SelectedSquare } from '../chess-board/models';
 
-export default class ChessBoardComponent extends React.Component {
+type BoardState = {
+    activeTile: SelectedSquare;
+    legalMove: Coords[];
+};
+
+export default class ChessBoardComponent extends React.Component<BoardState> {
+    state: BoardState = {
+        activeTile: { piece: null },
+        legalMove: [],
+    };
+
     private chessBoard = new ChessBoard();
     public chessBoardView: (FENChar | null)[][] =
         this.chessBoard.chessBoardView;
@@ -31,12 +41,16 @@ export default class ChessBoardComponent extends React.Component {
     private pieceSafeSquares: Coords[] = [];
 
     public isSquareSelected(x: number, y: number): boolean {
-        if (!this.selectedSquare.piece) return false;
-        return this.selectedSquare.x === x && this.selectedSquare.y === y;
+        if (!this.state.activeTile.piece) return false;
+        const result =
+            this.state.activeTile.x === x && this.state.activeTile.y === y;
+        // console.log({ result, x, y });
+
+        return result;
     }
     public isSquareSafeForSelectedPiece(x: number, y: number): boolean {
-        return this.pieceSafeSquares.some(
-            (coords) => coords.x === x && coords.y
+        return this.state.legalMove.some(
+            (coords) => coords.x === x && coords.y === y
         );
     }
 
@@ -44,12 +58,14 @@ export default class ChessBoardComponent extends React.Component {
         const piece: FENChar | null = this.chessBoardView[x][y];
         if (!piece) return;
         this.selectedSquare = { piece, x, y };
+        this.setState((state) => ({ activeTile: this.selectedSquare }));
         this.chessBoard.findSafeSqures();
         this.pieceSafeSquares =
             this.chessBoard.safeSquares.get(`${x},${y}`) || [];
+        this.setState({ legalMove: this.pieceSafeSquares });
         console.log(`in front`);
 
-        console.log(this.selectedSquare, this.pieceSafeSquares);
+        console.log(this.pieceSafeSquares);
     }
     render(): React.ReactNode {
         return (
@@ -71,8 +87,9 @@ export default class ChessBoardComponent extends React.Component {
                                                     : `bg-slate-900`
                                             }
                                             ${
-                                                this.isSquareSelected(x, y) ??
-                                                `bg-red-600`
+                                                this.isSquareSelected(x, y)
+                                                    ? `bg-red-600`
+                                                    : ``
                                             }
                                             `}
                                     >
@@ -83,6 +100,12 @@ export default class ChessBoardComponent extends React.Component {
                                                 height={40}
                                                 alt="piece"
                                             />
+                                        )}
+                                        {this.isSquareSafeForSelectedPiece(
+                                            x,
+                                            y
+                                        ) && (
+                                            <span className="h-2 w-2 bg-white border-2 border-yellow-400 rounded"></span>
                                         )}
                                     </div>
                                 );
