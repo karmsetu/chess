@@ -237,7 +237,7 @@ export class ChessBoard {
                         while (this.areCoordsValid(newX, newY)) {
                             newPiece = this.chessBoard[newX][newY];
                             if (newPiece && newPiece.color === piece.color)
-                                continue;
+                                break;
 
                             if (this.isPositionSafeAfterMove(x, y, newX, newY))
                                 pieceSafeSquares.push({ x: newX, y: newY });
