@@ -471,6 +471,17 @@ export class ChessBoard {
             this.chessBoard[rookPositionX][rookPositionY] = null;
             this.chessBoard[rookPositionX][rookNewPositionY] = rook;
             rook.hasMoved = true;
+        } else if (
+            piece instanceof Pawn &&
+            this._lastMove &&
+            this._lastMove.piece instanceof Pawn &&
+            Math.abs(this._lastMove.currX - this._lastMove.prevX) === 2 &&
+            prevX === this._lastMove.currX &&
+            newY === this._lastMove.currY
+        ) {
+            console.log(`lastMove:`, this._lastMove);
+
+            this.chessBoard[this._lastMove.currX][this._lastMove.currY] = null;
         }
     }
 }
