@@ -29,3 +29,12 @@
 ![findSafeSquare](./img/findSafeSquare.png)
 ![findSafeSquareLogic](./img/fSS-logic.png)
 ![king-in-check](./img/king-in-check.png)
+
+## En Passant
+
+> Conditions
+
+1. prevPlayer moved the exchanging pawn 2 squares
+2. both pawn are on same rank(x)
+3. adjecent to each other
+4. position must be safe after the exchange(no check)
