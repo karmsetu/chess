@@ -20,6 +20,9 @@ type BoardState = {
     chessBoardArray: (FENChar | null)[][];
     lastMove: LastMove | undefined;
     checkState: CheckState;
+    isPromotionActive: boolean;
+    promotionCoords: Coords | null;
+    promotedPiece: FENChar | null;
 };
 
 export default class ChessBoardComponent extends React.Component<BoardState> {
@@ -34,6 +37,9 @@ export default class ChessBoardComponent extends React.Component<BoardState> {
         chessBoardArray: this.chessBoardView,
         lastMove: this.lastMove,
         checkState: this.checkState,
+        isPromotionActive: false,
+        promotionCoords: null,
+        promotedPiece: null,
     };
 
     public get playerColor(): Color {
@@ -45,6 +51,22 @@ export default class ChessBoardComponent extends React.Component<BoardState> {
 
     private isSquareDark(x: number, y: number): boolean {
         return (x % 2 === 0 && y % 2 === 0) || (x % 2 === 1 && y % 2 === 1);
+    }
+
+    public promotionPieces(): FENChar[] {
+        return this.playerColor === Color.White
+            ? [
+                  FENChar.WhiteKnight,
+                  FENChar.WhiteBishop,
+                  FENChar.WhiteRook,
+                  FENChar.WhiteQueen,
+              ]
+            : [
+                  FENChar.BlackKnight,
+                  FENChar.BlackBishop,
+                  FENChar.BlackRook,
+                  FENChar.BlackQueen,
+              ];
     }
 
     private selectedSquare: SelectedSquare = { piece: null };
@@ -106,8 +128,27 @@ export default class ChessBoardComponent extends React.Component<BoardState> {
         if (!this.state.activeTile.piece) return;
         if (!this.isSquareSafeForSelectedPiece(newX, newY)) return;
 
+        // handling promotion
+        const isPawnSelected: boolean =
+            this.state.activeTile.piece === FENChar.WhitePawn ||
+            this.state.activeTile.piece === FENChar.BlackPawn;
+        const isPawnOnLastRank: boolean =
+            isPawnSelected && (newX === 7 || newX === 0);
+        const shouldOpenPromotionDialog: boolean =
+            !this.state.isPromotionActive && isPawnOnLastRank;
+        console.log({ shouldOpenPromotionDialog });
+
+        if (shouldOpenPromotionDialog) {
+            this.setState({
+                isPromotionActive: true,
+                promotionCoords: { x: newX, y: newY },
+            });
+
+            return;
+        }
+
         const { x: prevX, y: prevY } = this.state.activeTile;
-        this.chessBoard.move(prevX, prevY, newX, newY);
+        this.chessBoard.move(prevX, prevY, newX, newY, null);
         this.chessBoardView = this.chessBoard.chessBoardView;
         // this.state.checkState = this.chessBoard.checkState
         // this.setState({ checkState: this.chessBoard.checkState });
@@ -193,6 +234,25 @@ export default class ChessBoardComponent extends React.Component<BoardState> {
                             </div>
                         );
                     })}
+                </div>
+                <div>
+                    {this.state.isPromotionActive && (
+                        <>
+                            {this.promotionPieces().map((piece, index) => {
+                                return (
+                                    <span key={index}>
+                                        <Image
+                                            src={pieceImagePaths[piece]}
+                                            alt="promotion choice"
+                                            height={40}
+                                            width={40}
+                                        />
+                                    </span>
+                                );
+                            })}
+                            <button>close</button>
+                        </>
+                    )}
                 </div>
                 <button onClick={() => this.getStats()}>stat</button>
             </>

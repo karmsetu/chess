@@ -396,7 +396,8 @@ export class ChessBoard {
         prevX: number,
         prevY: number,
         newX: number,
-        newY: number
+        newY: number,
+        promotedPieceType: FENChar | null
     ): void {
         console.log(`called`);
         console.log(this.chessBoard);
@@ -437,8 +438,13 @@ export class ChessBoard {
         // updating the board
         // console.log({ prevX, prevY, newX, newY });
 
+        if (promotedPieceType) {
+            this.chessBoard[newX][newY] = this.promotedPiece(promotedPieceType);
+        } else {
+            this.chessBoard[newX][newY] = piece;
+        }
+
         this.chessBoard[prevX][prevY] = null;
-        this.chessBoard[newX][newY] = piece;
 
         this._lastMove = {
             prevX,
@@ -483,5 +489,29 @@ export class ChessBoard {
 
             this.chessBoard[this._lastMove.currX][this._lastMove.currY] = null;
         }
+    }
+
+    private promotedPiece(
+        promotedPiece: FENChar
+    ): Knight | Bishop | Rook | Queen {
+        if (
+            promotedPiece === FENChar.WhiteKnight ||
+            promotedPiece === FENChar.BlackKnight
+        )
+            return new Knight(this._playerColor);
+
+        if (
+            promotedPiece === FENChar.WhiteBishop ||
+            promotedPiece === FENChar.BlackBishop
+        )
+            return new Bishop(this._playerColor);
+
+        if (
+            promotedPiece === FENChar.WhiteRook ||
+            promotedPiece === FENChar.BlackRook
+        )
+            return new Rook(this._playerColor);
+
+        return new Queen(this._playerColor);
     }
 }
